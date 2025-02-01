@@ -10,12 +10,27 @@ class StructuredExplanation():
 
     relationship: str
     predicates: List[str | StructuredExplanation]
+    negated: bool = False
 
     def __str__(self):
-        return (" " + self.relationship + " ").join([str(p) for p in self.predicates])
+        rep = (" " + self.relationship + " ").join([str(p) for p in self.predicates])
+        if self.negated:
+            f'⌐({rep})'
+        return rep
 
     def __bool__(self):
         return bool(self.relationship) and len(self.predicates) > 0
+
+    def _get_leaves_(self):
+        nested = [p for p in self.predicates if p.__class__ == StructuredExplanation]
+        if nested:
+            return set([p for s in nested for p in s._get_leaves_()])
+        else:
+            return set(self.predicates)
+
+    def __eq__(self, value: StructuredExplanation) -> bool:
+        return self.relationship == value.relationship and self.negated == value.negated and self._get_leaves_() == value._get_leaves_()
+
 
 class AbstractPattern(ABC):
 
