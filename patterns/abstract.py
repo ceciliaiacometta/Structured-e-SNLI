@@ -1,7 +1,7 @@
 from __future__ import annotations
 from .common import *
 
-@dataclass
+@dataclass(frozen=True)
 class StructuredExplanation():
     '''
     Recursively represent a Structured explanation as a relationship between n predicates where a predicate can be
@@ -9,27 +9,35 @@ class StructuredExplanation():
     '''
 
     relationship: str
-    predicates: List[str | StructuredExplanation]
+    predicates: Tuple[Union[str, "StructuredExplanation"], ...]
     negated: bool = False
 
     def __str__(self):
         rep = (" " + self.relationship + " ").join([str(p) for p in self.predicates])
         if self.negated:
-            f'⌐({rep})'
+            return f'⌐({rep})'
         return rep
 
     def __bool__(self):
         return bool(self.relationship) and len(self.predicates) > 0
 
-    def _get_leaves_(self):
-        nested = [p for p in self.predicates if p.__class__ == StructuredExplanation]
-        if nested:
-            return set([p for s in nested for p in s._get_leaves_()])
-        else:
-            return set(self.predicates)
+    def __eq__(self, other: object) -> bool:
+        """Recursively check both structure and leaves, handling commutativity."""
+        if not isinstance(other, StructuredExplanation):
+            return False
 
-    def __eq__(self, value: StructuredExplanation) -> bool:
-        return self.relationship == value.relationship and self.negated == value.negated and self._get_leaves_() == value._get_leaves_()
+        if self.relationship != other.relationship or self.negated != other.negated:
+            return False
+
+        if len(self.predicates) != len(other.predicates):
+            return False
+
+        # Handle commutative operations by sorting predicates before comparison
+        if self.relationship == "∧":  
+            return sorted(self.predicates, key=str) == sorted(other.predicates, key=str)
+
+        # Otherwise, preserve order
+        return all(sp == op for sp, op in zip(self.predicates, other.predicates))
 
 
 class AbstractPattern(ABC):
