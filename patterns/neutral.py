@@ -5,6 +5,7 @@ from .entailment import *
 class NeutralImplicationPattern(ImplicationPattern):
 
     def __init__(self):
+        super().__init__()
 
         base_implication_patterns = {
             r"imply that": "imply",
@@ -24,7 +25,8 @@ class NeutralImplicationPattern(ImplicationPattern):
         }
 
         self.patterns = AbstractPattern._generate_negative_patterns(base_implication_patterns)
-        self.relationship = '≢'
+        # self.relationship = '⊭'
+        self.negate = True
 
 class NotAllPattern(AbstractPattern):
 
@@ -59,11 +61,6 @@ class NotAllPattern(AbstractPattern):
         right_string = " ".join(tok.text for tok in right_term).strip()
 
         left_string, right_string = AbstractPattern._get_grounded_terms(left_string, right_string, highlights)
-
-        # if not left_string:
-        #     left_string = "unknown_left_term"
-        # if not right_string:
-        #     right_string = "unknown_right_term"
 
         if not left_string or not right_string:
             raise ValueError("No grounded terms found")

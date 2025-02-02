@@ -47,18 +47,18 @@ class RephrasingPattern(AbstractPattern):
             right_term = AbstractPattern._get_right_tokens(anchor_token, pattern_tokens)
 
             left_string = " ".join(
-                [tok.text for tok in left_term if tok.text not in ['"', "“", "”"]]
-            ).strip()
+                [tok.text for tok in left_term if tok.text not in ['"', "“", "”"]]+pattern_tokens.text.split()
+            ).strip().lower()
             right_string = " ".join(
-                [tok.text for tok in right_term if tok.text not in ['"', "“", "”"]]
-            ).strip()
+                [tok.text for tok in right_term if tok.text not in ['"', "“", "”"]]+pattern_tokens.text.split()
+            ).strip().lower()
 
             left_string, right_string = AbstractPattern._get_grounded_terms(left_string, right_string, highlights)
 
             if not left_string or not right_string:
                 raise ValueError("No grounded terms found")
 
-            struct_expl = StructuredExplanation(self.relationship, [left_string, right_string])
+            struct_expl = StructuredExplanation(self.relationship, [left_string, right_string], self.negate)
             return struct_expl
 
 class ImplicationPattern(AbstractPattern):
@@ -102,15 +102,15 @@ class ImplicationPattern(AbstractPattern):
             # get the right term
             right_term = AbstractPattern._get_right_tokens(anchor_token, pattern_tokens)
 
-            left_string = " ".join([tok.text for tok in left_term if tok.text not in ['"', "“", "”"]]).strip()
-            right_string = " ".join([tok.text for tok in right_term if tok.text not in ['"', "“", "”"]]).strip()
+            left_string = " ".join([tok.text for tok in left_term if tok.text not in ['"', "“", "”"]+pattern_tokens.text.split()]).strip().lower()
+            right_string = " ".join([tok.text for tok in right_term if tok.text not in ['"', "“", "”"]+pattern_tokens.text.split()]).strip().lower()
 
             left_string, right_string = AbstractPattern._get_grounded_terms(left_string, right_string, highlights)
 
             if not left_string or not right_string:
                 raise ValueError("No grounded terms found")
 
-            struct_expl = StructuredExplanation(self.relationship, [left_string, right_string])
+            struct_expl = StructuredExplanation(self.relationship, [left_string, right_string], self.negate)
             return struct_expl
 
 class EquivalencePattern(AbstractPattern):
@@ -122,7 +122,7 @@ class EquivalencePattern(AbstractPattern):
         r"exchanged with": "exchanged",
         r"equivalent to": "equivalent",
     }
-        self.relationship = '↔'
+        self.relationship = '⊆'
 
     def _generate_structured_explanation(self, anchor_word: str, doc: Doc, pattern_tokens: Span, highlights: List[str]) -> StructuredExplanation:
 
@@ -147,11 +147,11 @@ class EquivalencePattern(AbstractPattern):
             right_term = AbstractPattern._get_right_tokens(anchor_token, pattern_tokens)
 
             left_string = " ".join(
-                tok.text for tok in left_term if tok.text not in ['"', "“", "”"]
-            ).strip()
+                tok.text for tok in left_term if tok.text not in ['"', "“", "”"]+pattern_tokens.text.split()
+            ).strip().lower()
             right_string = " ".join(
-                tok.text for tok in right_term if tok.text not in ['"', "“", "”"]
-            ).strip()
+                tok.text for tok in right_term if tok.text not in ['"', "“", "”"]+pattern_tokens.text.split()
+            ).strip().lower()
 
             left_string, right_string = AbstractPattern._get_grounded_terms(left_string, right_string, highlights)
 
@@ -196,7 +196,7 @@ class IfThenPattern(AbstractPattern):
         if not left_string or not right_string:
             raise ValueError("No grounded terms found")
 
-        return StructuredExplanation(self.relationship, [left_string, right_string])
+        return StructuredExplanation(self.relationship, [left_string, right_string], self.negate)
 
 class ClassificationPattern(AbstractPattern):
 
@@ -241,7 +241,7 @@ class ClassificationPattern(AbstractPattern):
         if not left_string or not right_string:
             raise ValueError("No grounded terms found")
 
-        return StructuredExplanation(self.relationship, [left_string, right_string])
+        return StructuredExplanation(self.relationship, [left_string, right_string], self.negate)
 
     def _find_additional_classifications(self, doc: Doc, highlights: List[str]) -> List[StructuredExplanation]:
         """
@@ -273,7 +273,7 @@ class ClassificationPattern(AbstractPattern):
                             raise ValueError("No grounded terms found")
 
                         explanations.append(
-                            StructuredExplanation(self.relationship, [left_string, right_string])
+                            StructuredExplanation(self.relationship, [left_string, right_string], self.negate)
                         )
 
         return explanations

@@ -15,7 +15,7 @@ class StructuredExplanation():
     def __str__(self):
         rep = (" " + self.relationship + " ").join([str(p) for p in self.predicates])
         if self.negated:
-            return f'⌐({rep})'
+            return f'¬({rep})'
         return rep
 
     def __bool__(self):
@@ -44,6 +44,7 @@ class AbstractPattern(ABC):
 
     patterns: Dict[str, str]
     relationship: str
+    negate: bool = False
 
     def __call__(self, doc: Doc, highlights: List[str]) -> List[StructuredExplanation]:
         '''
